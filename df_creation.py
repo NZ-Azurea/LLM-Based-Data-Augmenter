@@ -1,4 +1,18 @@
 import pandas as pd
+from bs4 import BeautifulSoup
+
+def custom_html_parser(text):
+    if isinstance(text, str):
+        soup = BeautifulSoup(text, "html.parser")
+        
+        # Remplacement des balises <code> par ``r et </code> par ``
+        for code_tag in soup.find_all("code"):
+            code_tag.insert_before("\n\n```r\n")
+            code_tag.insert_after("\n```\n\n")
+            code_tag.unwrap()
+        
+        return soup.get_text()
+    return text  # Retourner tel quel si ce n'est pas du texte
 
 # 🔹 Load CSV files with selected columns
 questions_df = pd.read_csv("Data/Questions.csv", usecols=["Id", "Title", "Body", "Score"])
@@ -27,6 +41,10 @@ filtered_df = merged_df[merged_df["QuestionScore"] > 0]
 question_median = filtered_df["QuestionScore"].median()
 answer_median = filtered_df["AnswerScore"].median()
 
+# Appliquer la fonction sur les colonnes contenant du HTML
+filtered_df["QuestionBody"] = filtered_df["QuestionBody"].apply(custom_html_parser)
+filtered_df["AnswerBody"] = filtered_df["AnswerBody"].apply(custom_html_parser)
+
 # 🔹 Save the cleaned and filtered data (optional)
 filtered_df.to_csv("Data/Filtered_Output.csv", index=False)
 
@@ -36,3 +54,6 @@ print(f"Median Answer Score: {answer_median}")
 
 print(filtered_df.head())
 print(filtered_df.shape[0])
+
+# nombre_lignes = (filtered_df['Tag'] == 'vector').sum()
+# print(nombre_lignes)

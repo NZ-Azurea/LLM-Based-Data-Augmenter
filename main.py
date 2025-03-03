@@ -7,7 +7,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 MODEL_PATH = "E:\Code_Perso\Python\model\Meta-Llama-3.1-8B-Instruct-Q6_K.gguf"
 TAG = "vector"
-NUMBER_TO_GEN = 5
+NUMBER_TO_GEN = 4500
 BAILOUT = 3
 
 def sentence_similarity(sent1, sent2):
@@ -223,6 +223,7 @@ df = df[df["Tag"] == TAG]
 New_datas = []
 
 while counter < NUMBER_TO_GEN:
+    print(f"_________________________________________ {counter}/{NUMBER_TO_GEN} ____________________________________________")
     random_rows = df.sample(n=2)
     context3 = None
     question3 = None

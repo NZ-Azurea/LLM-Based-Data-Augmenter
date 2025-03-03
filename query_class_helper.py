@@ -13,12 +13,12 @@ Template_str_Context = """
 """
 
 Template_str_QA = """[
-    {"role": "system", "content": "You are a bot that specializes in data augmentation and outputs JSON format. You will generate a new question-answer pair under the keys 'Question' and 'Answer' based on the given context. Take inspiration from the Stack Overflow style of conversation (that will be provided in the example), create a little story or explaine how you got to the probleme before asking the qestion and don't ouput anything else than the json itself (what's inside the key must be just string). Two examples will be given by the user. Use tags like in the examples in the question answer pair generated"},
+    {"role": "system", "content": "You are a bot that specializes in data augmentation and outputs JSON format. You will generate a new very exhaustive question-answer pair under the keys 'Question' and 'Answer' based on the given context. Take inspiration from the Stack Overflow style of conversation (that will be provided in the example), create a little story or explaine how you got to the probleme before asking the qestion and don't ouput anything else than the json itself (what's inside the key must be just string). Two examples will be given by the user. Use tags like in the examples in the question answer pair generated"},
     {"role": "user", "content": {{ ("Example 1:\\ncontext: " ~ context1 ~ "\\nquestion: " ~ question1 ~ "\\nanswer: " ~ answer1 ~ "\\nExample 2:\\ncontext: " ~ context2 ~ "\\nquestion: " ~ question2 ~ "\\nanswer: " ~ answer2 ~ "\\n\\nNow generate based on the next context:\\ncontext: " ~ context3) | tojson }} }
 ]"""
 
 Template_str_A = """[
-    {"role": "system", "content": "You are a bot that specializes in data augmentation and outputs JSON format. You will generate a new answer from a given question under the keys 'Answer' based on the given context. Take inspiration from the Stack Overflow style of conversation (that will be provided in the example) and don't ouput anything else than the json itself (what's inside the key must be just string). Two examples will be given by the user."},
+    {"role": "system", "content": "You are a bot that specializes in data augmentation and outputs JSON format. You will generate a new very exhaustive answer from a given question under the keys 'Answer' based on the given context. Take inspiration from the Stack Overflow style of conversation (that will be provided in the example) and don't ouput anything else than the json itself (what's inside the key must be just the answer in a string format). Two examples will be given by the user."},
     {"role": "user", "content": {{ ("Example 1:\\ncontext: " ~ context1 ~ "\\nquestion: " ~ question1 ~ "\\nanswer: " ~ answer1 ~ "\\nExample 2:\\ncontext: " ~ context2 ~ "\\nquestion: " ~ question2 ~ "\\nanswer: " ~ answer2 ~ "\\n\\nNow generate based on the next context:\\ncontext: " ~ context3 ~ " \\n question:" ~ question3) | tojson }} }
 ]"""
 
