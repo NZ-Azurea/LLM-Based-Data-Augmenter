@@ -4,6 +4,7 @@ from query_class_helper import query
 import json
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import re
 
 MODEL_PATH = "E:\Code_Perso\Python\model\Meta-Llama-3.1-8B-Instruct-Q6_K.gguf"
 TAG = "vector"
@@ -119,6 +120,13 @@ def generate_A(question3):
             if "Answer" in object:
                 consistencyAnswer = object["Answer"]
                 return consistencyAnswer
+            if isinstance(object ,str):
+                match = re.search(r'```json\n(.*?)```', object, re.DOTALL)
+                if match:
+                    json_str = match.group(1)
+                    parsed = json.loads(json_str)
+                    if "Answer" in parsed:
+                        return parsed["Answer"]
         Errors.append(ca)
         Counter_Bailout_a +=1
     print("Bailout Creation of question (smth went wrong in the format of the generation)")
@@ -130,7 +138,7 @@ def Get_Consistency(Question,Answer1,Answer2):
         ca = llm.create_chat_completion(
             messages=query_helper.Get_consistency(Answer1,Answer2,Question),
             max_tokens=4096,
-            temperature=0.5,
+            temperature=0.2,
             # top_k=40,
             # top_p=0.80,
             # grammar="json"
@@ -144,7 +152,7 @@ def Get_Consistency(Question,Answer1,Answer2):
         counter +=1
     return None,None
 
-llm = Llama(model_path=MODEL_PATH, n_gpu_layers=-1, n_ctx=5000, n_threads=20, verbose=False)
+llm = Llama(model_path=MODEL_PATH, n_gpu_layers=-1, n_ctx=11000, n_threads=20, verbose=False)
 
 query_helper = query()
 
@@ -230,28 +238,33 @@ while counter < NUMBER_TO_GEN:
     answer3 = None
     consistencyAnswer = None
     Counter_Failure = 0
-    context3 = generate_context(random_rows)
-    if context3 is not None:
-        while(Counter_Failure < BAILOUT):
-            question3,answer3 = generate_QA(random_rows,context3)
-            if question3 is not None:
-                consistencyAnswer = generate_A(question3)
-                if consistencyAnswer is not None:
-                    validation,score = Get_Consistency(question3,answer3,consistencyAnswer)
-                    print(validation,score)
-                    if validation is not None:
-                        if validation.lower() == "yes":
-                            New_datas.append({"context":context3,"question":question3,"answer":answer3})
-                            counter+=1
-                            break
-                        else:
-                            Counter_Failure+=1
-                            print("did not pass verification, redo the question answer on the same subject")
-                            if(Counter_Failure >= BAILOUT):
-                                print("pair question answer did not work produce good answer, bailout")
-            else:
-                print("Regenerating Context ...")
-                Counter_Failure = BAILOUT
+    try:
+        context3 = generate_context(random_rows)
+        if context3 is not None:
+            while(Counter_Failure < BAILOUT):
+                question3,answer3 = generate_QA(random_rows,context3)
+                if question3 is not None:
+                    consistencyAnswer = generate_A(question3)
+                    if consistencyAnswer is not None:
+                        validation,score = Get_Consistency(question3,answer3,consistencyAnswer)
+                        print(validation,score)
+                        if validation is not None:
+                            if validation.lower() == "yes":
+                                New_datas.append({"context":context3,"question":question3,"answer":answer3})
+                                counter+=1
+                                break
+                            else:
+                                Counter_Failure+=1
+                                print("did not pass verification, redo the question answer on the same subject")
+                                if(Counter_Failure >= BAILOUT):
+                                    print("pair question answer did not work produce good answer, bailout")
+                else:
+                    print("Regenerating Context ...")
+                    Counter_Failure = BAILOUT
+    except Exception as e:
+        print(e)
+        print("Retry Whole process")
+        
                             
 with open("data.json", "w") as file:
     json.dump(New_datas, file, indent=4)
