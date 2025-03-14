@@ -53,25 +53,31 @@ def extract_json_objects(text: str):
     return json_objects
 def generate_context(random_rows):
     counter_bailout_Context = 0
+    error = "None"
+    previous_answer = "None"
     while counter_bailout_Context < BAILOUT:
         context = llm.create_chat_completion(
             messages=query_helper.create_context(
-                random_rows.iloc[0]["Title"], random_rows.iloc[1]["Title"]
-            ),
+                random_rows.iloc[0]["Title"], random_rows.iloc[1]["Title"],error,previous_answer
+                ),
             max_tokens=4096,
             temperature=0.5,
             # top_k=40,
             # top_p=0.80,
             # grammar="json"
         )["choices"][0]["message"]["content"]
+        previous_answer = context
         json_objects = extract_json_objects(context)
         for object in json_objects:
             if "context" in object:
                 context3 = object["context"]
                 return context3
+        error = "Context wasn't fount in the Json object or generated json object not recognised"
         counter_bailout_Context +=1
     return None
 def generate_QA(random_rows,context3):
+    error = "None"
+    previous_answer = "None"
     counter_bailout_QA = 0
     while counter_bailout_QA < BAILOUT:
         q_a = llm.create_chat_completion(
@@ -81,6 +87,8 @@ def generate_QA(random_rows,context3):
                 random_rows.iloc[0]["AnswerBody"],
                 random_rows.iloc[1]["AnswerBody"],
                 context3,
+                error,
+                previous_answer
             ),
             max_tokens=4096,
             temperature=0.3,
@@ -88,33 +96,43 @@ def generate_QA(random_rows,context3):
             # top_p=0.80,
             # grammar="json"
         )["choices"][0]["message"]["content"]
+        error = "None"
+        previous_answer = q_a
         json_objects = extract_json_objects(q_a)
         for object in json_objects:
             if "Answer" in object and "Question" in object:
                 if(object["Question"] == context3):
+                    error = "question is the same as the context"
                     print("question is the same as the context :/")
                     break
                 if float(sentence_similarity(object["Question"],context3)) >90:
+                    error = "question is too similar to the context"
                     print("question is too similar to the context :/")
                     break
                 question3 = object["Question"]
                 answer3 = object["Answer"]
                 return question3,answer3
+        if (error is not None):
+            error = "Context wasn't fount in the Json object or generated json object not recognised"
         counter_bailout_QA+=1
     print("did not Generat a good pair Question Answer, Retry from context Generation")
     return None,None
 def generate_A(question3):
+    error = "None"
+    previous_answer = "None"
     Counter_Bailout_a = 0
     Errors = []
     while Counter_Bailout_a < BAILOUT:
         ca = llm.create_chat_completion(
-            messages=query_helper.create_A(question3),
+            messages=query_helper.create_A(question3,error,previous_answer),
             max_tokens=4096,
             temperature=0.5,
             # top_k=40,
             # top_p=0.80,
             # grammar="json"
             )["choices"][0]["message"]["content"]
+        error = "None"
+        previous_answer = ca
         json_objects = extract_json_objects(ca)
         for object in json_objects:
             if "Answer" in object:
@@ -127,6 +145,7 @@ def generate_A(question3):
                     parsed = json.loads(json_str)
                     if "Answer" in parsed:
                         return parsed["Answer"]
+        error = "Answer wasn't fount in the Json object or generated json object not recognised"
         Errors.append(ca)
         Counter_Bailout_a +=1
     print("Bailout Creation of question (smth went wrong in the format of the generation)")

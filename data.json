@@ -1,7 +1,7 @@
 [
     {
-        "context": "What is the primary reason for a memory allocation error in R when indexing a large numeric vector?",
-        "question": "The primary reason for a memory allocation error in R when indexing a large numeric vector is that R has a limited memory size, which is determined by the amount of available RAM. When you try to index a large vector, R attempts to allocate memory for the entire vector, which exceeds the available RAM, resulting in a memory allocation error.",
-        "answer": "R has a limited memory size, which is determined by the amount of available RAM. When you try to index a large vector, R attempts to allocate memory for the entire vector, which exceeds the available RAM, resulting in a memory allocation error."
+        "context": "How to split a large vector into chunks in R?",
+        "question": "I'm trying to split a large vector into known chunk sizes and it's slow. A solution for vectors with even remainders is here: A quick solution when a factor exists is here: Split dataframe into equal parts based on length of the dataframe I would like to handle the case of no (large) factor existing, as I would like fairly large chunks. My example for a vector much smaller than the one in my real life application: d <- 1:6510321 # Sloooow chunks <- split(d, ceiling(seq_along(d)/2000))",
+        "answer": "A speed improvement from the parallel package: chunks <- parallel::splitIndices(6510321, ncl = ceiling(6510321/2000))"
     }
 ]
