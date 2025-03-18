@@ -4,13 +4,16 @@ from query_class_helper import query
 import json
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from dotenv import load_dotenv
 import re
+import os
 
-MODEL_PATH = "D:\Code Perso\Python\model\Llama-3.2-3B-Instruct-Q8_0.gguf"
-TAG = "vector"
-NUMBER_TO_GEN = 1
-BAILOUT = 3
-
+load_dotenv()
+MODEL_PATH = os.getenv("MODEL_PATH")
+TAG = os.getenv("TAG")
+NUMBER_TO_GEN = int(os.getenv("NUMBER_TO_GEN", 1))
+BAILOUT = int(os.getenv("BAILOUT", 3))
+DATA = os.getenv("DATA")
 def sentence_similarity(sent1, sent2):
     vectorizer = TfidfVectorizer()
     tfidf_matrix = vectorizer.fit_transform([sent1, sent2])
@@ -178,7 +181,7 @@ query_helper = query()
 
 counter = 0
 
-df = pd.read_csv("Data/Filtered_Output.csv")
+df = pd.read_csv(DATA)
 df = df[df["Tag"] == TAG]
 
 New_datas = []
